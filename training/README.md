@@ -89,13 +89,17 @@ The trainer starts from the defaults in `TrainConfig` (top of `FlowMatchingTrain
 then applies, in order:
 
 1. **YAML** — with `--use_cfg` it loads `cfg/training/<task>/<job>.yaml` (or
-   `cfg/training/<task>/<exp>/<job>.yaml` when `--exp` is given).
+   `cfg/training/<task>/<exp>/<job>.yaml` when `--exp` is given). An explicit
+   `--config /absolute/path/to/config.yaml` takes precedence, which lets an
+   external orchestrator keep its resolved config outside this checkout.
 2. **CLI flags** — anything you pass (e.g. `--epochs 200 --lr 5e-5`) overrides the
    YAML. Most `TrainConfig` fields have a matching flag; the data-source fields
    (`data_sources`, `data_root`, `eval_source`) are set in the YAML, not on the CLI.
 
-The run directory is always `runs/<task>/<job>/`, and `--task` also selects which data
-to load (`data/<task>/...`).
+The default run directory is `runs/<task>/<job>/`, and `--task` selects which data
+to load (`data/<task>/...`). Use `--data_root /absolute/data/root` and
+`--out_dir /absolute/run/path` to keep datasets and artifacts outside this
+source checkout.
 
 ```bash
 python -m training.FlowMatchingTrainer --task <task> --use_cfg --job <job> [--exp <group>] \

@@ -1,0 +1,40 @@
+name: Prometheus source adapter
+
+on:
+  pull_request:
+    paths:
+      - ".prometheus/**"
+      - "training/FlowMatchingTrainer.py"
+      - "tests/test_prometheus_adapter.py"
+      - ".github/workflows/prometheus-adapter.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".prometheus/**"
+      - "training/FlowMatchingTrainer.py"
+      - "tests/test_prometheus_adapter.py"
+      - ".github/workflows/prometheus-adapter.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Compile hardware-free boundary
+        run: python -m py_compile .prometheus/adapter.py training/FlowMatchingTrainer.py
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+      - name: Run adapter contract tests
+        run: python -m unittest -v tests.test_prometheus_adapter
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+      - name: Verify tests did not mutate the source checkout
+        run: git diff --exit-code
