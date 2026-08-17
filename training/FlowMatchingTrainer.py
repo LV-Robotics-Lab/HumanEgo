@@ -1101,6 +1101,9 @@ if __name__ == "__main__":
     parser.add_argument("--task", type=str, default=None, help="Task name to auto-search data (e.g., 'downstack_cups')")
     parser.add_argument("--exp", type=str, default=None, help="Experiment group name (e.g., 'AuxTraining'). Enables cfg/training/{task}/{exp}/{job}.yaml and runs/{task}/{exp}/{job}/")
     parser.add_argument("--job", type=str, default=None, required=True)
+    parser.add_argument("--config", type=str, default=None, help="Explicit YAML config path; takes precedence over the derived cfg/training path")
+    parser.add_argument("--data_root", type=str, default=None, help="Explicit dataset root (may be outside this source checkout)")
+    parser.add_argument("--out_dir", type=str, default=None, help="Explicit output directory (may be outside this source checkout)")
     parser.add_argument("--train_data", type=str, nargs="*", default=None, help="Explicit list of training session paths")
     parser.add_argument("--eval_data", type=str, nargs="*", default=None, help="Explicit list of evaluation session paths")
     parser.add_argument("--data_num", type=int, default=None, help="Limit number of training sessions")
@@ -1115,12 +1118,14 @@ if __name__ == "__main__":
     cfg = TrainConfig()
 
     # YAML meta keys that come from CLI args — skip them when loading YAML
-    _yaml_meta_keys = {"task", "exp", "job"}
+    _yaml_meta_keys = {"task", "exp", "job", "config", "out_dir"}
 
     # Automatically find and load YAML if --use_cfg is passed, or if --exp is provided
-    _load_cfg = args.use_cfg or (args.exp is not None)
+    _load_cfg = args.config is not None or args.use_cfg or (args.exp is not None)
     if _load_cfg and args.task and args.job:
-        if args.exp:
+        if args.config:
+            yaml_path = os.path.abspath(os.path.expanduser(args.config))
+        elif args.exp:
             yaml_path = os.path.join("cfg", "training", args.task, args.exp, f"{args.job}.yaml")
         else:
             yaml_path = os.path.join("cfg", "training", args.task, f"{args.job}.yaml")
@@ -1153,7 +1158,9 @@ if __name__ == "__main__":
             if k == "image_size" and isinstance(v, list):
                 v = tuple(v)
             setattr(cfg, k, v)
-    if args.exp:
+    if args.out_dir:
+        out_dir = os.path.abspath(os.path.expanduser(args.out_dir))
+    elif args.exp:
         out_dir = os.path.join("./runs", cfg.task, args.exp, args.job)
     else:
         out_dir = os.path.join("./runs", cfg.task, args.job)
@@ -1236,6 +1243,7 @@ if __name__ == "__main__":
     if args.vis_eval_every is not None: cfg.vis_eval_every = args.vis_eval_every
     
     if args.task is not None: cfg.task = args.task
+    if args.data_root is not None: cfg.data_root = os.path.abspath(os.path.expanduser(args.data_root))
     if args.train_data is not None and len(args.train_data) > 0: cfg.MPS_PATHS_TRAIN = list(args.train_data)
     if args.eval_data is not None and len(args.eval_data) > 0: cfg.MPS_PATHS_EVAL = list(args.eval_data)
     if args.data_num is not None: cfg.data_num = args.data_num

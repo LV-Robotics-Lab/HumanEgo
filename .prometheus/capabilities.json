@@ -1,0 +1,31 @@
+{
+  "schema": "prometheus_source_adapter_v1",
+  "policy_id": "humanego",
+  "capabilities": {
+    "distributed": "single_process",
+    "hardware_rollout_authorized": false,
+    "resume": "partial_state_non_bit_exact"
+  },
+  "dataset": {
+    "format": "humanego_preprocessed_v1",
+    "action_layout": [
+      "left_position_xyz",
+      "right_position_xyz",
+      "left_rotation_6d",
+      "right_rotation_6d",
+      "left_grasp",
+      "right_grasp"
+    ],
+    "action_dim": 20,
+    "output_semantics": "dual_hand_pose_not_robot_joint_command"
+  },
+  "stages": {
+    "doctor": true,
+    "eval": false,
+    "export": false,
+    "prepare": false,
+    "resume": true,
+    "serve": false,
+    "train": true
+  }
+}
